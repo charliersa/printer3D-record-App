@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#07080A; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  a { color:#D6FF3E; text-decoration:none; }
+  a:hover { color:#E9FF8A; }
+  input, select, textarea, button { font-family:inherit; color-scheme:dark; }
+  input::placeholder, textarea::placeholder { color:#5C6470; }
+  .scr::-webkit-scrollbar { width:0; height:0; }
+  select option { background:#15171B; color:#F2F4F7; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;font-family:'Noto Sans TC','Space Grotesk',sans-serif;background:radial-gradient(120% 90% at 50% 0%,#14161B 0%,#07080A 62%);">
+<div style="width:390px;height:844px;background:#0B0C0E;border:1px solid #23262D;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 40px 90px -30px rgba(0,0,0,.9);display:flex;flex-direction:column;">
+
+  <div style="height:52px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#F2F4F7;letter-spacing:.04em;">
+    <span>9:41</span>
+    <span style="display:flex;gap:6px;align-items:center;color:#8A929E;">
+      <span>LTE</span><span style="color:{{ ac }};">86%</span>
+    </span>
+  </div>
+
+  <div class="scr" style="flex:1;overflow-y:auto;overflow-x:hidden;">
+
+    <!-- 總覽 -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:8px 20px 28px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;color:#8A929E;text-transform:uppercase;">WORKSHOP LOG</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;color:#F2F4F7;letter-spacing:-.01em;margin-top:4px;">列印工作台</div>
+        </div>
+        <div style="width:40px;height:40px;border-radius:12px;background:#15171B;border:1px solid #282C34;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ ac }};">YC</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;">
+        <div style="background:#15171B;border:1px solid #282C34;border-radius:18px;padding:14px 14px 16px;">
+          <div style="font-size:11px;color:#8A929E;letter-spacing:.06em;">設備總數</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#F2F4F7;margin-top:6px;">{{ stats.equip }}</div>
+        </div>
+        <div style="background:#15171B;border:1px solid #282C34;border-radius:18px;padding:14px 14px 16px;">
+          <div style="font-size:11px;color:#8A929E;letter-spacing:.06em;">耗材品項</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#F2F4F7;margin-top:6px;">{{ stats.mat }}</div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showCost }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:10px;background:{{ ac }};border-radius:18px;padding:16px 16px 18px;color:#0B0C0E;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;">累計投入成本</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.65;">NTD</div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;margin-top:4px;letter-spacing:-.02em;">{{ stats.totalCost }}</div>
+        <div style="display:flex;gap:16px;margin-top:10px;border-top:1px solid rgba(11,12,14,.18);padding-top:10px;">
+          <div><div style="font-size:10px;opacity:.7;">設備</div><div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;">{{ stats.equipCost }}</div></div>
+          <div><div style="font-size:10px;opacity:.7;">耗材</div><div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;">{{ stats.matCost }}</div></div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ hasLow }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:10px;background:#1D1710;border:1px solid #4A3718;border-radius:18px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#FBBF24;"></span>
+          <span style="font-size:12px;font-weight:700;color:#FBBF24;">低庫存提醒</span>
+        </div>
+        <sc-for list="{{ lowList }}" as="l" hint-placeholder-count="2">
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;color:#E4D9C4;">
+            <span>{{ l.name }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;color:#FBBF24;">{{ l.left }}</span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <div style="margin-top:24px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#8A929E;">清單分類</div>
+        <div onClick="{{ goNewCat }}" style="font-size:12px;color:{{ ac }};cursor:pointer;">＋ 自訂分類</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+        <sc-for list="{{ colCards }}" as="c" hint-placeholder-count="3">
+          <div onClick="{{ c.open }}" style="display:flex;align-items:center;gap:12px;background:#15171B;border:1px solid #282C34;border-radius:16px;padding:13px 14px;cursor:pointer;" style-hover="background:#1D2026;border-color:#3A4049;">
+            <div style="width:38px;height:38px;flex:none;border-radius:11px;background:#0B0C0E;border:1px solid #2F343C;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:{{ c.tint }};">{{ c.code }}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:15px;font-weight:500;color:#F2F4F7;">{{ c.name }}</div>
+              <div style="font-size:11px;color:#8A929E;margin-top:2px;">{{ c.meta }}</div>
+            </div>
+            <div style="color:#5C6470;font-size:18px;">›</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- 清單 -->
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:8px 0 28px;">
+      <div style="padding:0 20px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#F2F4F7;">{{ colTitle }}</div>
+        <div style="font-size:12px;color:#8A929E;margin-top:3px;">{{ colSub }}</div>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding:16px 20px 4px;">
+        <sc-for list="{{ colChips }}" as="ch" hint-placeholder-count="3">
+          <div onClick="{{ ch.pick }}" style="flex:none;padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.fg }};">{{ ch.name }}</div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:12px 20px 0;">
+        <sc-for list="{{ items }}" as="it" hint-placeholder-count="4">
+          <div onClick="{{ it.open }}" style="background:#15171B;border:1px solid #282C34;border-radius:16px;padding:14px;cursor:pointer;" style-hover="border-color:#3A4049;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:15px;font-weight:500;color:#F2F4F7;">{{ it.title }}</div>
+                <div style="font-size:11px;color:#8A929E;margin-top:3px;font-family:'IBM Plex Mono',monospace;">{{ it.sub }}</div>
+              </div>
+              <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
+                <span style="flex:none;font-size:10px;padding:4px 8px;border-radius:999px;background:{{ it.badgeBg }};color:{{ it.badgeFg }};">{{ it.badge }}</span>
+              </sc-if>
+            </div>
+            <sc-if value="{{ it.hasBar }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:12px;height:4px;border-radius:99px;background:#23262D;overflow:hidden;">
+                <div style="height:100%;border-radius:99px;background:{{ it.barColor }};width:{{ it.barW }};"></div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed #303640;border-radius:16px;padding:28px 16px;text-align:center;color:#6B7381;font-size:13px;">這個分類還沒有資料<br><span style="color:{{ ac }};">按下方 ＋ 新增第一筆</span></div>
+        </sc-if>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- 詳情 -->
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:8px 20px 28px;">
+      <div onClick="{{ goBackList }}" style="font-size:13px;color:#8A929E;cursor:pointer;">‹ 返回 {{ colTitle }}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#F2F4F7;margin-top:12px;">{{ detailTitle }}</div>
+      <sc-if value="{{ detailBadge }}" hint-placeholder-val="{{ true }}">
+        <span style="display:inline-block;margin-top:8px;font-size:11px;padding:4px 10px;border-radius:999px;background:{{ detailBadgeBg }};color:{{ detailBadgeFg }};">{{ detailBadge }}</span>
+      </sc-if>
+      <div style="margin-top:18px;background:#15171B;border:1px solid #282C34;border-radius:18px;overflow:hidden;">
+        <sc-for list="{{ detailRows }}" as="r" hint-placeholder-count="5">
+          <div style="display:flex;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #1F2229;">
+            <span style="font-size:13px;color:#8A929E;">{{ r.label }}</span>
+            <span style="font-size:13px;color:#F2F4F7;font-family:'IBM Plex Mono',monospace;text-align:right;">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <div onClick="{{ goEdit }}" style="flex:1;text-align:center;padding:14px;border-radius:14px;background:{{ ac }};color:#0B0C0E;font-size:14px;font-weight:700;cursor:pointer;">編輯</div>
+        <div onClick="{{ delItem }}" style="flex:none;padding:14px 18px;border-radius:14px;background:#1A1416;border:1px solid #4A2226;color:#F87171;font-size:14px;cursor:pointer;">刪除</div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- 新增／編輯 -->
+    <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:8px 20px 28px;">
+      <div onClick="{{ cancelForm }}" style="font-size:13px;color:#8A929E;cursor:pointer;">‹ 取消</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#F2F4F7;margin-top:12px;">{{ formTitle }}</div>
+
+      <sc-if value="{{ formPickCat }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#8A929E;margin-top:18px;">分類</div>
+        <div style="display:flex;gap:8px;overflow-x:auto;margin-top:8px;">
+          <sc-for list="{{ colChips }}" as="ch" hint-placeholder-count="3">
+            <div onClick="{{ ch.pickForm }}" style="flex:none;padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.fg }};">{{ ch.name }}</div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px;">
+        <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="font-size:11px;color:#8A929E;letter-spacing:.06em;">{{ f.label }}</label>
+              <sc-if value="{{ f.custom }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ f.remove }}" style="font-size:10px;color:#6B7381;cursor:pointer;">自訂欄位 · 移除</span>
+              </sc-if>
+            </div>
+            <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
+              <select value="{{ f.value }}" onChange="{{ f.onChange }}" style="width:100%;margin-top:6px;padding:13px 12px;border-radius:13px;background:#15171B;border:1px solid #2F343C;color:#F2F4F7;font-size:14px;appearance:none;">
+                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3">
+                  <option value="{{ o.v }}">{{ o.v }}</option>
+                </sc-for>
+              </select>
+            </sc-if>
+            <sc-if value="{{ f.isDate }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ f.openDate }}" style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;background:#15171B;border:1px solid #2F343C;border-radius:13px;padding:13px 12px;cursor:pointer;" style-hover="border-color:#3A4049;">
+                <span style="font-size:14px;font-family:'IBM Plex Mono',monospace;color:{{ f.dateFg }};">{{ f.dateText }}</span>
+                <span style="font-size:11px;color:{{ ac }};">選擇</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ f.isInput }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;margin-top:6px;background:#15171B;border:1px solid #2F343C;border-radius:13px;padding:0 12px;">
+                <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" type="{{ f.inputType }}" style="flex:1;padding:13px 0;background:transparent;border:0;outline:none;color:#F2F4F7;font-size:14px;">
+                <sc-if value="{{ f.unit }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6B7381;">{{ f.unit }}</span>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ addingField }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:14px;background:#12140F;border:1px solid #3C4622;border-radius:16px;padding:14px;">
+        <div style="font-size:12px;color:{{ ac }};font-weight:700;">新增自訂欄位</div>
+        <input value="{{ nfLabel }}" onChange="{{ setNfLabel }}" placeholder="欄位名稱，例如：保固到期" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;background:#0B0C0E;border:1px solid #2F343C;color:#F2F4F7;font-size:14px;outline:none;">
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <sc-for list="{{ nfTypes }}" as="t" hint-placeholder-count="3">
+            <div onClick="{{ t.pick }}" style="flex:1;text-align:center;padding:10px 0;border-radius:11px;font-size:12px;cursor:pointer;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.fg }};">{{ t.name }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <div onClick="{{ confirmField }}" style="flex:1;text-align:center;padding:11px;border-radius:12px;background:{{ ac }};color:#0B0C0E;font-size:13px;font-weight:700;cursor:pointer;">加入欄位</div>
+          <div onClick="{{ cancelField }}" style="padding:11px 16px;border-radius:12px;border:1px solid #2F343C;color:#8A929E;font-size:13px;cursor:pointer;">取消</div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ canAddField }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ startAddField }}" style="margin-top:14px;border:1px dashed #3A4049;border-radius:14px;padding:13px;text-align:center;font-size:13px;color:{{ ac }};cursor:pointer;">＋ 自訂欄位</div>
+      </sc-if>
+
+      <div onClick="{{ saveForm }}" style="margin-top:18px;text-align:center;padding:15px;border-radius:14px;background:{{ ac }};color:#0B0C0E;font-size:15px;font-weight:700;cursor:pointer;">{{ saveLabel }}</div>
+    </div>
+    </sc-if>
+
+    <!-- 新增分類 -->
+    <sc-if value="{{ isNewCat }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:8px 20px 28px;">
+      <div onClick="{{ goSettings }}" style="font-size:13px;color:#8A929E;cursor:pointer;">‹ 返回設定</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#F2F4F7;margin-top:12px;">自訂分類</div>
+      <div style="font-size:12px;color:#8A929E;margin-top:4px;">建立屬於自己的清單類型，例如「噴嘴庫」、「維修紀錄」。</div>
+      <div style="margin-top:20px;">
+        <label style="font-size:11px;color:#8A929E;">分類名稱</label>
+        <input value="{{ catName }}" onChange="{{ setCatName }}" placeholder="例如：維修紀錄" style="width:100%;margin-top:6px;padding:13px 12px;border-radius:13px;background:#15171B;border:1px solid #2F343C;color:#F2F4F7;font-size:14px;outline:none;">
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:11px;color:#8A929E;">代碼（2 字元）</label>
+        <input value="{{ catCode }}" onChange="{{ setCatCode }}" placeholder="RP" style="width:100%;margin-top:6px;padding:13px 12px;border-radius:13px;background:#15171B;border:1px solid #2F343C;color:#F2F4F7;font-size:14px;outline:none;font-family:'IBM Plex Mono',monospace;">
+      </div>
+      <div style="margin-top:22px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#8A929E;">欄位</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+        <sc-for list="{{ catFields }}" as="f" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#15171B;border:1px solid #282C34;border-radius:13px;padding:12px 14px;">
+            <div><div style="font-size:14px;color:#F2F4F7;">{{ f.label }}</div><div style="font-size:11px;color:#6B7381;font-family:'IBM Plex Mono',monospace;">{{ f.typeName }}</div></div>
+            <span onClick="{{ f.remove }}" style="font-size:12px;color:#F87171;cursor:pointer;">移除</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:12px;background:#12140F;border:1px solid #3C4622;border-radius:16px;padding:14px;">
+        <input value="{{ nfLabel }}" onChange="{{ setNfLabel }}" placeholder="欄位名稱" style="width:100%;padding:12px;border-radius:12px;background:#0B0C0E;border:1px solid #2F343C;color:#F2F4F7;font-size:14px;outline:none;">
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <sc-for list="{{ nfTypes }}" as="t" hint-placeholder-count="3">
+            <div onClick="{{ t.pick }}" style="flex:1;text-align:center;padding:10px 0;border-radius:11px;font-size:12px;cursor:pointer;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.fg }};">{{ t.name }}</div>
+          </sc-for>
+        </div>
+        <div onClick="{{ addCatField }}" style="margin-top:12px;text-align:center;padding:11px;border-radius:12px;background:#1D2026;border:1px solid #3A4049;color:{{ ac }};font-size:13px;cursor:pointer;">＋ 加入欄位</div>
+      </div>
+      <div onClick="{{ saveCat }}" style="margin-top:18px;text-align:center;padding:15px;border-radius:14px;background:{{ ac }};color:#0B0C0E;font-size:15px;font-weight:700;cursor:pointer;">建立分類</div>
+    </div>
+    </sc-if>
+
+    <!-- 設定 -->
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:8px 20px 28px;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:#F2F4F7;">設定</div>
+      <div style="margin-top:22px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#8A929E;">分類與欄位</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+        <sc-for list="{{ settingCols }}" as="c" hint-placeholder-count="3">
+          <div style="background:#15171B;border:1px solid #282C34;border-radius:16px;padding:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#0B0C0E;border:1px solid #2F343C;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ c.tint }};">{{ c.code }}</div>
+                <div><div style="font-size:15px;color:#F2F4F7;">{{ c.name }}</div><div style="font-size:11px;color:#6B7381;">{{ c.meta }}</div></div>
+              </div>
+              <sc-if value="{{ c.removable }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ c.remove }}" style="font-size:12px;color:#F87171;cursor:pointer;">刪除</span>
+              </sc-if>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+              <sc-for list="{{ c.fields }}" as="f" hint-placeholder-count="4">
+                <span style="font-size:11px;padding:5px 9px;border-radius:8px;background:#0B0C0E;border:1px solid #2A2E36;color:#9AA3AF;">{{ f.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div onClick="{{ goNewCat }}" style="margin-top:12px;border:1px dashed #3A4049;border-radius:14px;padding:14px;text-align:center;font-size:13px;color:{{ ac }};cursor:pointer;">＋ 新增自訂分類</div>
+
+      <div style="margin-top:26px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#8A929E;">偏好</div>
+      <div style="margin-top:10px;background:#15171B;border:1px solid #282C34;border-radius:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 15px;border-bottom:1px solid #1F2229;">
+          <span style="font-size:14px;color:#F2F4F7;">低庫存門檻</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:{{ ac }};">{{ lowThreshold }} g</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 15px;border-bottom:1px solid #1F2229;">
+          <span style="font-size:14px;color:#F2F4F7;">顯示成本統計</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8A929E;">{{ costLabel }}</span>
+        </div>
+        <div onClick="{{ resetData }}" style="display:flex;justify-content:space-between;align-items:center;padding:14px 15px;cursor:pointer;">
+          <span style="font-size:14px;color:#F87171;">重設為範例資料</span>
+          <span style="color:#5C6470;">›</span>
+        </div>
+      </div>
+      <div style="margin-top:18px;font-size:11px;color:#4F5762;font-family:'IBM Plex Mono',monospace;">PRINT LOG v0.1 · 個人工作室版</div>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(6,7,9,.7);display:flex;align-items:flex-end;z-index:20;">
+    <div onClick="{{ closePicker }}" style="position:absolute;inset:0;"></div>
+    <div style="position:relative;width:100%;background:#15171B;border-top:1px solid #2F343C;border-radius:26px 26px 44px 44px;padding:20px 20px 30px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div onClick="{{ prevMonth }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #2F343C;display:flex;align-items:center;justify-content:center;color:#8A929E;cursor:pointer;">‹</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#F2F4F7;letter-spacing:.02em;">{{ pickerTitle }}</div>
+        <div onClick="{{ nextMonth }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #2F343C;display:flex;align-items:center;justify-content:center;color:#8A929E;cursor:pointer;">›</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;">
+        <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7">
+          <div style="text-align:center;font-size:11px;color:#6B7381;padding-bottom:4px;">{{ d.w }}</div>
+        </sc-for>
+        <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="30">
+          <div onClick="{{ c.pick }}" style="height:38px;display:flex;align-items:center;justify-content:center;border-radius:11px;font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};">{{ c.label }}</div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <div onClick="{{ pickToday }}" style="flex:1;text-align:center;padding:12px;border-radius:12px;background:#1D2026;border:1px solid #3A4049;color:{{ ac }};font-size:13px;cursor:pointer;">今天</div>
+        <div onClick="{{ clearDate }}" style="flex:1;text-align:center;padding:12px;border-radius:12px;border:1px solid #2F343C;color:#8A929E;font-size:13px;cursor:pointer;">清除</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(6,7,9,.78);display:flex;align-items:center;justify-content:center;padding:28px;z-index:30;">
+    <div onClick="{{ cancelConfirm }}" style="position:absolute;inset:0;"></div>
+    <div style="position:relative;width:100%;background:#15171B;border:1px solid #2F343C;border-radius:22px;padding:22px 20px 18px;">
+      <div style="font-size:17px;font-weight:700;color:#F2F4F7;">{{ confirmTitle }}</div>
+      <div style="font-size:13px;color:#8A929E;line-height:1.6;margin-top:8px;">{{ confirmDesc }}</div>
+      <div style="display:flex;gap:8px;margin-top:20px;">
+        <div onClick="{{ cancelConfirm }}" style="flex:1;text-align:center;padding:13px;border-radius:13px;border:1px solid #2F343C;color:#8A929E;font-size:14px;cursor:pointer;">取消</div>
+        <div onClick="{{ runConfirm }}" style="flex:1;text-align:center;padding:13px;border-radius:13px;background:#1A1416;border:1px solid #4A2226;color:#F87171;font-size:14px;font-weight:700;cursor:pointer;">{{ confirmLabel }}</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="flex:none;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;align-items:center;background:#101216;border-top:1px solid #23262D;padding:10px 12px 26px;">
+    <div onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ tintHome }};">
+      <div style="width:18px;height:18px;border:2px solid currentColor;border-radius:5px;"></div>
+      <span style="font-size:10px;">總覽</span>
+    </div>
+    <div onClick="{{ goList }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ tintList }};">
+      <div style="width:18px;height:18px;display:flex;flex-direction:column;justify-content:space-between;">
+        <span style="height:2px;background:currentColor;border-radius:2px;"></span>
+        <span style="height:2px;background:currentColor;border-radius:2px;"></span>
+        <span style="height:2px;background:currentColor;border-radius:2px;"></span>
+      </div>
+      <span style="font-size:10px;">清單</span>
+    </div>
+    <div onClick="{{ goNew }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ tintNew }};">
+      <div style="width:36px;height:24px;border-radius:9px;background:{{ ac }};color:#0B0C0E;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;line-height:1;">+</div>
+      <span style="font-size:10px;">新增</span>
+    </div>
+    <div onClick="{{ goSettings }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ tintSet }};">
+      <div style="width:18px;height:18px;border:2px solid currentColor;border-radius:50%;"></div>
+      <span style="font-size:10px;">設定</span>
+    </div>
+  </div>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:930},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#D6FF3E&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#D6FF3E&quot;,&quot;#FF7A33&quot;,&quot;#7DD3FC&quot;,&quot;#F472B6&quot;],&quot;section&quot;:&quot;外觀&quot;},&quot;lowThreshold&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:300,&quot;min&quot;:50,&quot;max&quot;:1000,&quot;step&quot;:50,&quot;unit&quot;:&quot;g&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;行為&quot;},&quot;showCost&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;行為&quot;}}">
+const TYPE_NAMES = { text: '文字', number: '數字', select: '選項', date: '日期' };
+const STORE_KEY = 'printlog-3dp-v1';
+
+let uidN = 0;
+function uid(p) { return p + Date.now().toString(36) + (uidN++).toString(36); }
+
+// 空字串 / null / undefined / 非數字一律回 dflt，避免沒填的欄位被當成 0
+function numOr(v, dflt) {
+  if (v === '' || v === null || v === undefined) return dflt;
+  const n = Number(v);
+  return isNaN(n) ? dflt : n;
+}
+
+function seed() {
+  return [
+    {
+      id: 'equip', code: 'EQ', name: '設備', tint: '#D6FF3E', builtin: true,
+      fields: [
+        { key: 'name', label: '名稱', type: 'text' },
+        { key: 'model', label: '機型', type: 'text' },
+        { key: 'nozzle', label: '噴頭口徑', type: 'text' },
+        { key: 'status', label: '狀態', type: 'select', options: ['正常', '待維修', '閒置'], badge: true },
+        { key: 'hours', label: '累計時數', type: 'number', unit: 'h' },
+        { key: 'cost', label: '購入成本', type: 'number', unit: 'NT$', money: true }
+      ],
+      items: [
+        { id: 'e1', name: 'A1 主力機', model: 'Bambu A1', nozzle: '0.4mm', status: '正常', hours: 412, cost: 18900 },
+        { id: 'e2', name: '長工時機', model: 'Prusa MK4', nozzle: '0.6mm', status: '待維修', hours: 1268, cost: 32500 },
+        { id: 'e3', name: '光固化', model: 'Mars 4 Ultra', nozzle: '—', status: '閒置', hours: 96, cost: 9800 }
+      ]
+    },
+    {
+      id: 'filament', code: 'FL', name: '耗材', tint: '#7DD3FC', builtin: true,
+      fields: [
+        { key: 'name', label: '名稱', type: 'text' },
+        { key: 'material', label: '材質', type: 'select', options: ['PLA', 'PETG', 'ABS', 'TPU', 'Resin'] },
+        { key: 'color', label: '顏色', type: 'text' },
+        { key: 'left', label: '剩餘重量', type: 'number', unit: 'g', meter: true },
+        { key: 'price', label: '單價', type: 'number', unit: 'NT$', money: true },
+        { key: 'qty', label: '數量', type: 'number', unit: '捲', qty: true },
+        { key: 'brand', label: '廠牌', type: 'text' }
+      ],
+      items: [
+        { id: 'f1', name: '霧黑 PLA', material: 'PLA', color: '霧黑', left: 780, price: 590, qty: 3, brand: 'eSun' },
+        { id: 'f2', name: '透明 PETG', material: 'PETG', color: '透明', left: 240, price: 720, qty: 1, brand: 'Polymaker' },
+        { id: 'f3', name: '軟膠 TPU', material: 'TPU', color: '螢光橘', left: 150, price: 980, qty: 1, brand: 'SainSmart' },
+        { id: 'f4', name: '標準灰樹脂', material: 'Resin', color: '灰', left: 620, price: 850, qty: 2, brand: 'Elegoo' }
+      ]
+    }
+  ];
+}
+
+const BADGE = {
+  '正常': ['#12261A', '#4ADE80'],
+  '待維修': ['#2A1A12', '#FB923C'],
+  '閒置': ['#1C1F26', '#9AA3AF']
+};
+const BADGE_OFF = ['#1C1F26', '#9AA3AF'];
+
+const CONFIRMS = {
+  delItem: { title: '刪除這筆紀錄？', desc: '這筆紀錄會立刻消失，沒有復原。', label: '刪除' },
+  delCol: { title: '刪除這個分類？', desc: '分類底下的所有紀錄會一起刪除，沒有復原。', label: '刪除' },
+  reset: { title: '重設為範例資料？', desc: '目前所有紀錄與自訂分類都會被覆蓋，沒有復原。', label: '重設' }
+};
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.collections) || !d.collections.length) return null;
+    for (const c of d.collections) {
+      if (!c || typeof c.id !== 'string' || !Array.isArray(c.fields) || !Array.isArray(c.items)) return null;
+    }
+    return d;
+  } catch (e) { return null; }
+}
+function persist(s) {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ collections: s.collections, colId: s.colId }));
+  } catch (e) { /* 無痕模式或沙箱可能擋掉 localStorage，忽略即可 */ }
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home',
+    colId: 'equip',
+    itemId: null,
+    draft: null,
+    editing: false,
+    addingField: false,
+    fieldAdds: [],
+    fieldDels: [],
+    nfLabel: '',
+    nfType: 'text',
+    catName: '',
+    catCode: '',
+    catFields: [],
+    picker: null,
+    pickerY: new Date().getFullYear(),
+    pickerM: new Date().getMonth(),
+    confirm: null,
+    confirmArg: null,
+    collections: seed()
+  };
+
+  constructor(props) {
+    super(props);
+    const saved = loadSaved();
+    if (saved) {
+      this.state = { ...this.state, collections: saved.collections };
+      if (saved.collections.some(c => c.id === saved.colId)) this.state.colId = saved.colId;
+    }
+  }
+  componentDidMount() { this.sync(); }
+  componentDidUpdate() { this.sync(); }
+  sync() {
+    const s = this.state;
+    if (s.collections === this._pCols && s.colId === this._pColId) return;
+    this._pCols = s.collections;
+    this._pColId = s.colId;
+    persist(s);
+  }
+
+  openPicker(key, cur) {
+    const d = cur && /^\d{4}-\d{2}-\d{2}$/.test(cur) ? new Date(cur + 'T00:00:00') : new Date();
+    this.setState({ picker: key, pickerY: d.getFullYear(), pickerM: d.getMonth() });
+  }
+  shiftMonth(n) {
+    this.setState(s => {
+      const d = new Date(s.pickerY, s.pickerM + n, 1);
+      return { pickerY: d.getFullYear(), pickerM: d.getMonth() };
+    });
+  }
+  calCells() {
+    const S = this.state, y = S.pickerY, m = S.pickerM;
+    const first = new Date(y, m, 1).getDay();
+    const days = new Date(y, m + 1, 0).getDate();
+    const cur = (S.draft || {})[S.picker] || '';
+    const todayS = new Date().toISOString().slice(0, 10);
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push({ label: '', blank: true, bg: 'transparent', fg: 'transparent', pick: () => {} });
+    for (let d = 1; d <= days; d++) {
+      const iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const sel = cur === iso, today = todayS === iso;
+      cells.push({
+        label: String(d), blank: false,
+        bg: sel ? this.accent() : 'transparent',
+        fg: sel ? '#0B0C0E' : (today ? this.accent() : '#E6E9EE'),
+        pick: () => this.setState(s => ({ draft: { ...s.draft, [s.picker]: iso }, picker: null }))
+      });
+    }
+    return cells;
+  }
+
+  col(id) {
+    return this.state.collections.find(c => c.id === (id || this.state.colId)) || this.state.collections[0];
+  }
+  num(n) {
+    const v = Number(n);
+    return isNaN(v) ? String(n ?? '') : v.toLocaleString('en-US');
+  }
+  threshold() { return this.props.lowThreshold ?? 300; }
+  accent() { return this.props.accent ?? '#D6FF3E'; }
+  // accent 的 12% 透明版。回傳值不能含分號，否則 runtime 以 ; 切 style 時會壞掉
+  accentSoft() {
+    const m = /^#([0-9a-fA-F]{6})$/.exec(this.accent());
+    if (!m) return 'rgba(214,255,62,.12)';
+    const n = parseInt(m[1], 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',.12)';
+  }
+
+  setCols(fn) {
+    this.setState(s => ({ collections: fn(s.collections.map(c => ({ ...c, fields: c.fields.map(f => ({ ...f })), items: c.items.map(i => ({ ...i })) }))) }));
+  }
+
+  // 表單當下看到的欄位 = 分類欄位 − 待刪除 + 待新增；按下儲存才真的寫回分類
+  liveFields(col) {
+    const S = this.state;
+    return col.fields.filter(f => !S.fieldDels.includes(f.key)).concat(S.fieldAdds);
+  }
+  blankDraft(col) {
+    const d = {};
+    col.fields.forEach(f => { d[f.key] = f.type === 'select' ? (f.options || [''])[0] : ''; });
+    return d;
+  }
+  // 切換分類時盡量保留已填內容，只丟掉新分類沒有的欄位
+  carryDraft(old, col) {
+    const d = this.blankDraft(col);
+    if (!old) return d;
+    col.fields.forEach(f => {
+      const v = old[f.key];
+      if (v === undefined || v === '') return;
+      if (f.type === 'select' && !(f.options || []).includes(v)) return;
+      d[f.key] = v;
+    });
+    return d;
+  }
+
+  badgeField(col) { return col.fields.find(f => f.badge) || null; }
+  meterField(col) { return col.fields.find(f => f.meter) || null; }
+  // 進度條滿格刻度：取分類內實際最大值與門檻兩倍的較大者，不再寫死 1000g
+  meterScale(col, mf) {
+    let max = 0;
+    col.items.forEach(i => { max = Math.max(max, numOr(i[mf.key], 0)); });
+    return Math.max(max, this.threshold() * 2, 1);
+  }
+  // 分類投入成本 = 金額欄位 × 數量欄位（沒有數量欄位就當 1）
+  colCost(c) {
+    if (!c) return 0;
+    const mf = c.fields.find(f => f.money);
+    if (!mf) return 0;
+    const qf = c.fields.find(f => f.qty);
+    return c.items.reduce((a, i) => a + numOr(i[mf.key], 0) * (qf ? numOr(i[qf.key], 1) : 1), 0);
+  }
+
+  fmtItemValue(f, item) {
+    const v = item[f.key];
+    if (v === undefined || v === '' || v === null) return '—';
+    if (f.type === 'number') return (f.unit === 'NT$' ? 'NT$ ' : '') + this.num(v) + (f.unit && f.unit !== 'NT$' ? ' ' + f.unit : '');
+    return String(v);
+  }
+
+  typeChips() {
+    return ['text', 'number', 'select', 'date'].map(t => {
+      const on = this.state.nfType === t;
+      return {
+        name: TYPE_NAMES[t], border: on ? this.accent() : '#2F343C',
+        bg: on ? this.accentSoft() : '#0B0C0E', fg: on ? this.accent() : '#8A929E',
+        pick: () => this.setState({ nfType: t })
+      };
+    });
+  }
+
+  askConfirm(kind, arg) { this.setState({ confirm: kind, confirmArg: arg ?? null }); }
+  runConfirm() {
+    const S = this.state, kind = S.confirm, arg = S.confirmArg;
+    if (kind === 'delItem') {
+      const cid = this.col().id;
+      this.setCols(cols => cols.map(c => c.id === cid ? { ...c, items: c.items.filter(i => i.id !== S.itemId) } : c));
+      this.setState({ screen: 'list', itemId: null });
+    } else if (kind === 'delCol') {
+      this.setState(s => {
+        const cols = s.collections.filter(x => x.id !== arg);
+        const patch = { collections: cols };
+        if (s.colId === arg) { patch.colId = cols[0].id; patch.itemId = null; }
+        return patch;
+      });
+    } else if (kind === 'reset') {
+      this.setState({ collections: seed(), colId: 'equip', screen: 'home', itemId: null, draft: null, fieldAdds: [], fieldDels: [] });
+    }
+    this.setState({ confirm: null, confirmArg: null });
+  }
+
+  renderVals() {
+    const S = this.state, ac = this.accent(), acSoft = this.accentSoft(), th = this.threshold();
+    const col = this.col();
+    const equip = this.col('equip'), fil = this.col('filament');
+    const equipCost = this.colCost(equip), matCost = this.colCost(fil);
+
+    // 低庫存掃描所有帶「計量欄位」的分類，不再只認 filament 的 left
+    const lowList = [];
+    S.collections.forEach(c => {
+      const mf = this.meterField(c);
+      if (!mf) return;
+      c.items.forEach(i => {
+        const v = numOr(i[mf.key], null);
+        if (v === null || v >= th) return;
+        lowList.push({ name: i.name || '未命名', left: this.num(v) + (mf.unit ? ' ' + mf.unit : '') });
+      });
+    });
+
+    const item = col.items.find(i => i.id === S.itemId);
+    const statusField = this.badgeField(col);
+    const meterF = this.meterField(col);
+    const meterMax = meterF ? this.meterScale(col, meterF) : 1;
+
+    const chips = S.collections.map(c => {
+      const on = c.id === S.colId;
+      return {
+        name: c.name, border: on ? ac : '#2A2E36', bg: on ? acSoft : '#15171B',
+        fg: on ? ac : '#8A929E',
+        pick: () => this.setState({ colId: c.id, screen: 'list', itemId: null }),
+        pickForm: () => this.setState(s => ({ colId: c.id, draft: this.carryDraft(s.draft, c), fieldAdds: [], fieldDels: [] }))
+      };
+    });
+
+    const items = col.items.map(i => {
+      const sub = col.fields.slice(1, 3).map(f => this.fmtItemValue(f, i)).filter(v => v !== '—').join(' · ');
+      const badge = statusField ? i[statusField.key] : '';
+      const bc = BADGE[badge] || BADGE_OFF;
+      const mv = meterF ? numOr(i[meterF.key], null) : null;
+      return {
+        title: i.name || '未命名', sub: sub || col.name, badge: badge || '',
+        badgeBg: bc[0], badgeFg: bc[1],
+        hasBar: mv !== null,
+        barW: (mv !== null && mv > 0 ? Math.max(4, Math.min(100, Math.round(mv / meterMax * 100))) : 0) + '%',
+        barColor: mv !== null && mv < th ? '#FBBF24' : ac,
+        open: () => this.setState({ screen: 'detail', itemId: i.id })
+      };
+    });
+
+    const formCol = col;
+    const draft = S.draft || {};
+    const formFields = this.liveFields(formCol).map(f => ({
+      label: f.label + (f.unit === 'NT$' ? '（NT$）' : ''),
+      value: draft[f.key] ?? '',
+      isSelect: f.type === 'select',
+      isDate: f.type === 'date',
+      dateText: draft[f.key] || '選擇日期',
+      dateFg: draft[f.key] ? '#F2F4F7' : '#5C6470',
+      openDate: () => this.openPicker(f.key, draft[f.key]),
+      isInput: f.type !== 'select' && f.type !== 'date',
+      inputType: f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text'),
+      unit: f.unit && f.unit !== 'NT$' ? f.unit : '',
+      ph: f.type === 'number' ? '0' : (f.type === 'date' ? 'YYYY-MM-DD' : '輸入' + f.label),
+      options: (f.options || []).map(o => ({ v: o })),
+      custom: !!f.custom,
+      onChange: e => { const v = e.target.value; this.setState(s => ({ draft: { ...s.draft, [f.key]: v } })); },
+      remove: () => this.setState(s => (
+        s.fieldAdds.some(x => x.key === f.key)
+          ? { fieldAdds: s.fieldAdds.filter(x => x.key !== f.key) }
+          : { fieldDels: s.fieldDels.concat([f.key]) }
+      ))
+    }));
+
+    const cf = CONFIRMS[S.confirm] || { title: '', desc: '', label: '' };
+
+    return {
+      ac, acSoft,
+      isHome: S.screen === 'home', isList: S.screen === 'list', isDetail: S.screen === 'detail' && !!item,
+      isForm: S.screen === 'form', isSettings: S.screen === 'settings', isNewCat: S.screen === 'newcat',
+      showCost: this.props.showCost ?? true,
+      stats: {
+        equip: equip ? equip.items.length : 0, mat: fil ? fil.items.length : 0,
+        totalCost: 'NT$ ' + this.num(equipCost + matCost),
+        equipCost: this.num(equipCost), matCost: this.num(matCost)
+      },
+      hasLow: lowList.length > 0, lowList,
+      colCards: S.collections.map(c => ({
+        name: c.name, code: c.code, tint: c.tint,
+        meta: c.items.length + ' 筆 · ' + c.fields.length + ' 個欄位',
+        open: () => this.setState({ colId: c.id, screen: 'list', itemId: null })
+      })),
+      colTitle: col.name, colSub: col.items.length + ' 筆紀錄',
+      colChips: chips, items, listEmpty: col.items.length === 0,
+      detailTitle: item ? (item.name || '未命名') : '',
+      detailBadge: item && statusField ? item[statusField.key] : '',
+      detailBadgeBg: item && statusField ? (BADGE[item[statusField.key]] || BADGE_OFF)[0] : BADGE_OFF[0],
+      detailBadgeFg: item && statusField ? (BADGE[item[statusField.key]] || BADGE_OFF)[1] : BADGE_OFF[1],
+      detailRows: item ? col.fields.filter(f => f.key !== 'name').map(f => ({ label: f.label, value: this.fmtItemValue(f, item) })) : [],
+      formTitle: S.editing ? '編輯' + col.name : '新增' + col.name,
+      saveLabel: S.editing ? '儲存變更' : '新增到' + col.name,
+      formPickCat: !S.editing, formFields,
+      canAddField: !S.addingField, addingField: S.addingField,
+      nfLabel: S.nfLabel, nfTypes: this.typeChips(),
+      catName: S.catName, catCode: S.catCode,
+      catFields: S.catFields.map((f, idx) => ({
+        label: f.label, typeName: TYPE_NAMES[f.type],
+        remove: () => this.setState(s => ({ catFields: s.catFields.filter((_, i) => i !== idx) }))
+      })),
+      settingCols: S.collections.map(c => ({
+        name: c.name, code: c.code, tint: c.tint,
+        meta: c.items.length + ' 筆紀錄',
+        removable: !c.builtin,
+        fields: c.fields.map(f => ({ label: f.label })),
+        remove: () => this.askConfirm('delCol', c.id)
+      })),
+      pickerOpen: !!S.picker,
+      pickerTitle: S.pickerY + ' 年 ' + (S.pickerM + 1) + ' 月',
+      calCells: this.calCells(),
+      weekDays: ['日', '一', '二', '三', '四', '五', '六'].map(w => ({ w })),
+      prevMonth: () => this.shiftMonth(-1),
+      nextMonth: () => this.shiftMonth(1),
+      closePicker: () => this.setState({ picker: null }),
+      pickToday: () => this.setState(s => ({ draft: { ...s.draft, [s.picker]: new Date().toISOString().slice(0, 10) }, picker: null })),
+      clearDate: () => this.setState(s => ({ draft: { ...s.draft, [s.picker]: '' }, picker: null })),
+      lowThreshold: th, costLabel: (this.props.showCost ?? true) ? '開啟' : '關閉',
+      tintHome: S.screen === 'home' ? ac : '#5C6470',
+      tintList: (S.screen === 'list' || S.screen === 'detail') ? ac : '#5C6470',
+      tintNew: S.screen === 'form' ? ac : '#5C6470',
+      tintSet: (S.screen === 'settings' || S.screen === 'newcat') ? ac : '#5C6470',
+
+      confirmOpen: !!S.confirm, confirmTitle: cf.title, confirmDesc: cf.desc, confirmLabel: cf.label,
+      runConfirm: () => this.runConfirm(),
+      cancelConfirm: () => this.setState({ confirm: null, confirmArg: null }),
+
+      goHome: () => this.setState({ screen: 'home' }),
+      goList: () => this.setState({ screen: 'list', itemId: null }),
+      goBackList: () => this.setState({ screen: 'list', itemId: null }),
+      goSettings: () => this.setState({ screen: 'settings' }),
+      goNewCat: () => this.setState({ screen: 'newcat', catName: '', catCode: '', catFields: [], nfLabel: '', nfType: 'text' }),
+      goNew: () => this.setState({ screen: 'form', editing: false, itemId: null, addingField: false, draft: this.blankDraft(col), fieldAdds: [], fieldDels: [] }),
+      goEdit: () => this.setState({ screen: 'form', editing: true, addingField: false, draft: { ...item }, fieldAdds: [], fieldDels: [] }),
+      cancelForm: () => this.setState({ screen: S.editing ? 'detail' : 'list', addingField: false, fieldAdds: [], fieldDels: [] }),
+      delItem: () => this.askConfirm('delItem'),
+      saveForm: () => {
+        const d = { ...S.draft };
+        if (!d.name) d.name = '未命名' + col.name;
+        const adds = S.fieldAdds, dels = S.fieldDels;
+        const id = S.editing ? S.itemId : uid('x');
+        this.setCols(cols => cols.map(c => {
+          if (c.id !== col.id) return c;
+          const fields = c.fields.filter(f => !dels.includes(f.key)).concat(adds.map(f => ({ ...f })));
+          const items = S.editing
+            ? c.items.map(i => i.id === S.itemId ? { ...i, ...d, id } : i)
+            : c.items.concat([{ ...d, id }]);
+          return { ...c, fields, items };
+        }));
+        this.setState({ screen: 'detail', itemId: id, fieldAdds: [], fieldDels: [] });
+      },
+      startAddField: () => this.setState({ addingField: true, nfLabel: '', nfType: 'text' }),
+      cancelField: () => this.setState({ addingField: false }),
+      setNfLabel: e => this.setState({ nfLabel: e.target.value }),
+      confirmField: () => {
+        const label = S.nfLabel.trim() || TYPE_NAMES[S.nfType] + '欄位';
+        const f = { key: uid('c'), label, type: S.nfType, custom: true };
+        if (S.nfType === 'select') f.options = ['選項 A', '選項 B'];
+        this.setState(s => ({
+          addingField: false, nfLabel: '',
+          fieldAdds: s.fieldAdds.concat([f]),
+          draft: { ...s.draft, [f.key]: f.type === 'select' ? '選項 A' : '' }
+        }));
+      },
+      setCatName: e => this.setState({ catName: e.target.value }),
+      setCatCode: e => this.setState({ catCode: e.target.value.slice(0, 2).toUpperCase() }),
+      addCatField: () => {
+        const label = S.nfLabel.trim() || TYPE_NAMES[S.nfType] + '欄位';
+        const f = { key: uid('c'), label, type: S.nfType, custom: true };
+        if (S.nfType === 'select') f.options = ['選項 A', '選項 B'];
+        this.setState(s => ({ catFields: s.catFields.concat([f]), nfLabel: '' }));
+      },
+      saveCat: () => {
+        const name = S.catName.trim() || '新分類';
+        const id = uid('k');
+        const fields = [{ key: 'name', label: '名稱', type: 'text' }].concat(S.catFields);
+        this.setCols(cols => cols.concat([{ id, code: S.catCode || 'CU', name, tint: '#FB923C', builtin: false, fields, items: [] }]));
+        this.setState({ screen: 'list', colId: id, itemId: null });
+      },
+      resetData: () => this.askConfirm('reset')
+    };
+  }
+}
+</script>
+</body>
+</html>
