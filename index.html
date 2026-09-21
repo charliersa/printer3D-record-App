@@ -2,8 +2,26 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>列印工作台</title>
+<!-- PWA 設定：只在單獨開啟這個檔案時生效。注意註解裡不能出現字面上的 x-dc 標籤，support.js 是用正規表示式在原始碼上找元件開頭的 -->
+<meta name="theme-color" content="#0B0C0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="列印工作台">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <script src="./support.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function (err) {
+        console.warn('service worker 註冊失敗：', err);
+      });
+    });
+  }
+</script>
 </head>
 <body>
 <x-dc>
@@ -21,13 +39,26 @@
   input::placeholder, textarea::placeholder { color:#5C6470; }
   .scr::-webkit-scrollbar { width:0; height:0; }
   select option { background:#15171B; color:#F2F4F7; }
+  /* 裝成 App 後拿掉手機外框與假狀態列，直接填滿螢幕。
+     畫布與瀏覽器分頁不會進 standalone，這段不會生效，inline style 維持原樣可編輯。 */
+  @media (display-mode: standalone) {
+    html, body { height:100%; overflow:hidden; }
+    .pwa-stage { min-height:100dvh !important; padding:0 !important; background:#0B0C0E !important; }
+    .pwa-frame {
+      /* 手機上滿版；裝在桌面時維持直式欄寬置中，不要橫向拉開 */
+      width:100% !important; max-width:520px !important; height:100dvh !important;
+      border:0 !important; border-radius:0 !important; box-shadow:none !important;
+      padding-top:env(safe-area-inset-top) !important;
+    }
+    .pwa-chrome { display:none !important; }
+  }
 </style>
 </helmet>
 
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;font-family:'Noto Sans TC','Space Grotesk',sans-serif;background:radial-gradient(120% 90% at 50% 0%,#14161B 0%,#07080A 62%);">
-<div style="width:390px;height:844px;background:#0B0C0E;border:1px solid #23262D;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 40px 90px -30px rgba(0,0,0,.9);display:flex;flex-direction:column;">
+<div class="pwa-stage" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;font-family:'Noto Sans TC','Space Grotesk',sans-serif;background:radial-gradient(120% 90% at 50% 0%,#14161B 0%,#07080A 62%);">
+<div class="pwa-frame" style="width:390px;height:844px;background:#0B0C0E;border:1px solid #23262D;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 40px 90px -30px rgba(0,0,0,.9);display:flex;flex-direction:column;">
 
-  <div style="height:52px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#F2F4F7;letter-spacing:.04em;">
+  <div class="pwa-chrome" style="height:52px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#F2F4F7;letter-spacing:.04em;">
     <span>9:41</span>
     <span style="display:flex;gap:6px;align-items:center;color:#8A929E;">
       <span>LTE</span><span style="color:{{ ac }};">86%</span>
