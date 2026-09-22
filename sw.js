@@ -1,6 +1,6 @@
 // 列印工作台 service worker
 // 改版時把 VERSION 加一，舊快取會在 activate 時清掉。
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'printlog-' + VERSION;
 
 // 同源的核心檔案，裝不起來就沒有離線可言，所以是必要項目
@@ -50,10 +50,12 @@ self.addEventListener('fetch', event => {
   const sameOrigin = url.origin === self.location.origin;
 
   if (sameOrigin) {
-    // 自己的檔案走 network-first：有網路就拿最新的，沒網路才回快取
+    // 自己的檔案走 network-first：有網路就拿最新的，沒網路才回快取。
+    // cache:'reload' 是必要的：GitHub Pages 回 max-age=600，不繞過瀏覽器的
+    // HTTP 快取的話，network-first 會被架空，改版後最久要等 10 分鐘才看得到。
     event.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        const res = await fetch(req, { cache: 'reload' });
         if (res && res.ok) {
           const cache = await caches.open(CACHE);
           cache.put(req, res.clone());
