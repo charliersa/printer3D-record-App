@@ -1,6 +1,6 @@
 // 列印工作台 service worker
 // 改版時把 VERSION 加一，舊快取會在 activate 時清掉。
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'printlog-' + VERSION;
 
 // 同源的核心檔案，裝不起來就沒有離線可言，所以是必要項目
@@ -73,7 +73,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 外部資源（unpkg 的 React、Google Fonts）網址都帶版本，走 cache-first
+  // 外部資源（unpkg 的 React、Google Fonts、OCR 用的 tesseract.js 與語言模型）
+  // 網址都帶版本，走 cache-first；第一次辨識抓過之後就能離線用
   event.respondWith((async () => {
     const hit = await caches.match(req);
     if (hit) return hit;
