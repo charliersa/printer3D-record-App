@@ -495,6 +495,27 @@
           <span style="color:#5C6470;">›</span>
         </div>
       </div>
+      <div style="margin-top:26px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#8A929E;">雲端同步 · GOOGLE SHEET</div>
+      <div style="margin-top:10px;background:#15171B;border:1px solid #282C34;border-radius:16px;padding:14px;">
+        <label style="font-size:11px;color:#8A929E;">網頁應用程式網址（/exec 結尾）</label>
+        <input value="{{ syncUrl }}" onChange="{{ setSyncUrl }}" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;margin-top:6px;padding:12px;border-radius:12px;background:#0B0C0E;border:1px solid #2F343C;color:#F2F4F7;font-size:12px;outline:none;font-family:'IBM Plex Mono',monospace;">
+        <label style="display:block;margin-top:12px;font-size:11px;color:#8A929E;">密鑰（Code.gs 裡的 TOKEN）</label>
+        <input value="{{ syncToken }}" onChange="{{ setSyncToken }}" type="password" placeholder="和後端一模一樣的字串" style="width:100%;margin-top:6px;padding:12px;border-radius:12px;background:#0B0C0E;border:1px solid #2F343C;color:#F2F4F7;font-size:12px;outline:none;font-family:'IBM Plex Mono',monospace;">
+        <div style="display:flex;gap:8px;margin-top:13px;">
+          <div onClick="{{ cloudPush }}" style="flex:1;text-align:center;padding:12px;border-radius:12px;background:{{ ac }};color:#0B0C0E;font-size:13px;font-weight:700;cursor:pointer;">上傳</div>
+          <div onClick="{{ cloudPull }}" style="flex:1;text-align:center;padding:12px;border-radius:12px;background:#1D2026;border:1px solid #3A4049;color:{{ ac }};font-size:13px;cursor:pointer;">下載</div>
+          <div onClick="{{ cloudPing }}" style="flex:none;padding:12px 14px;border-radius:12px;border:1px solid #2F343C;color:#8A929E;font-size:13px;cursor:pointer;">測試</div>
+        </div>
+        <sc-if value="{{ syncMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;background:#12140F;border:1px solid #3C4622;border-radius:12px;padding:11px 12px;font-size:12px;color:{{ ac }};line-height:1.6;word-break:break-word;">{{ syncMsg }}</div>
+        </sc-if>
+        <sc-if value="{{ syncErr }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;background:#1A1416;border:1px solid #4A2226;border-radius:12px;padding:11px 12px;font-size:12px;color:#F87171;line-height:1.6;word-break:break-word;">{{ syncErr }}</div>
+        </sc-if>
+        <div style="margin-top:11px;font-size:11px;color:#5C6470;font-family:'IBM Plex Mono',monospace;">{{ syncState }}</div>
+        <div style="margin-top:9px;font-size:11px;color:#5C6470;line-height:1.7;">上傳＝本機蓋過雲端，下載＝雲端蓋過本機。部署步驟看 apps-script/README.md。</div>
+      </div>
+
       <div style="margin-top:18px;font-size:11px;color:#4F5762;font-family:'IBM Plex Mono',monospace;">PRINT LOG v0.1 · 個人工作室版</div>
     </div>
     </sc-if>
@@ -631,6 +652,8 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:930},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#D6FF3E&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#D6FF3E&quot;,&quot;#FF7A33&quot;,&quot;#7DD3FC&quot;,&quot;#F472B6&quot;],&quot;section&quot;:&quot;外觀&quot;},&quot;lowThreshold&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:300,&quot;min&quot;:50,&quot;max&quot;:1000,&quot;step&quot;:50,&quot;unit&quot;:&quot;g&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;行為&quot;},&quot;showCost&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;行為&quot;}}">
 const TYPE_NAMES = { text: '文字', number: '數字', select: '選項', date: '日期' };
 const STORE_KEY = 'printlog-3dp-v1';
+// 同步設定另外存，才不會跟資料本體互相影響
+const SYNC_KEY = 'printlog-3dp-sync-v1';
 
 let uidN = 0;
 function uid(p) { return p + Date.now().toString(36) + (uidN++).toString(36); }
@@ -691,7 +714,9 @@ const BADGE_OFF = ['#1C1F26', '#9AA3AF'];
 const CONFIRMS = {
   delItem: { title: '刪除這筆紀錄？', desc: '這筆紀錄會立刻消失，沒有復原。', label: '刪除' },
   delCol: { title: '刪除這個分類？', desc: '分類底下的所有紀錄會一起刪除，沒有復原。', label: '刪除' },
-  reset: { title: '重設為範例資料？', desc: '目前所有紀錄與自訂分類都會被覆蓋，沒有復原。', label: '重設' }
+  reset: { title: '重設為範例資料？', desc: '目前所有紀錄與自訂分類都會被覆蓋，沒有復原。', label: '重設' },
+  cloudPull: { title: '用雲端資料覆蓋本機？', desc: '這台裝置目前的紀錄會被 Google Sheet 的內容整包取代，沒有復原。', label: '下載覆蓋' },
+  cloudForce: { title: '強制覆蓋雲端？', desc: '雲端有比你手上更新的變更，繼續會把它蓋掉，沒有復原。', label: '覆蓋雲端' }
 };
 
 function loadSaved() {
@@ -710,6 +735,35 @@ function persist(s) {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({ collections: s.collections, colId: s.colId }));
   } catch (e) { /* 無痕模式或沙箱可能擋掉 localStorage，忽略即可 */ }
+}
+
+function loadSync() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SYNC_KEY) || 'null');
+    if (!d || typeof d !== 'object') return null;
+    return {
+      syncUrl: typeof d.syncUrl === 'string' ? d.syncUrl : '',
+      syncToken: typeof d.syncToken === 'string' ? d.syncToken : '',
+      syncRev: Number(d.syncRev) || 0,
+      syncAt: typeof d.syncAt === 'string' ? d.syncAt : ''
+    };
+  } catch (e) { return null; }
+}
+function persistSync(s) {
+  try {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({
+      syncUrl: s.syncUrl, syncToken: s.syncToken, syncRev: s.syncRev, syncAt: s.syncAt
+    }));
+  } catch (e) { /* 無痕模式擋掉就算了 */ }
+}
+// 後端回的是 ISO 字串，顯示成本地時間比較好讀
+function fmtWhen(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+    ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
 class Component extends DCLogic {
@@ -742,6 +796,13 @@ class Component extends DCLogic {
     ocrThumb: '',
     ocrLines: [],
     ocrDone: false,
+    syncUrl: '',
+    syncToken: '',
+    syncRev: 0,
+    syncAt: '',
+    syncBusy: false,
+    syncMsg: '',
+    syncErr: '',
     collections: seed()
   };
 
@@ -752,6 +813,8 @@ class Component extends DCLogic {
       this.state = { ...this.state, collections: saved.collections };
       if (saved.collections.some(c => c.id === saved.colId)) this.state.colId = saved.colId;
     }
+    const sync = loadSync();
+    if (sync) this.state = { ...this.state, ...sync };
   }
   componentDidMount() { this.sync(); }
   componentDidUpdate() { this.sync(); }
@@ -983,10 +1046,96 @@ class Component extends DCLogic {
         if (s.colId === arg) { patch.colId = cols[0].id; patch.itemId = null; }
         return patch;
       });
+    } else if (kind === 'cloudPull') {
+      this.doPull();
+    } else if (kind === 'cloudForce') {
+      this.doPush(true);
     } else if (kind === 'reset') {
       this.setState({ collections: seed(), colId: 'equip', screen: 'home', itemId: null, draft: null, fieldAdds: [], fieldDels: [], reorder: false });
     }
     this.setState({ confirm: null, confirmArg: null });
+  }
+
+  // 一律用 POST + text/plain：Apps Script 不會回應 CORS preflight，
+  // 送 application/json 會先被瀏覽器的 OPTIONS 擋掉
+  cloudCall(action, extra) {
+    const url = (this.state.syncUrl || '').trim();
+    const token = this.state.syncToken || '';
+    if (!/^https:\/\/script\.google\.com\/.*\/exec$/.test(url)) {
+      return Promise.reject(new Error('網址要是 Apps Script 的 /exec 結尾網址。'));
+    }
+    if (!token) return Promise.reject(new Error('請先填密鑰。'));
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...(extra || {}), action, token })
+    }).then(r => {
+      if (!r.ok) throw new Error('伺服器回應 HTTP ' + r.status + '。');
+      return r.text();
+    }).then(t => {
+      try { return JSON.parse(t); }
+      catch (e) { throw new Error('回應不是 JSON，通常是部署時「誰可以存取」沒設成任何人。'); }
+    }, e => {
+      if (e instanceof TypeError) throw new Error('連不上後端，檢查網址、網路，以及部署的存取權限。');
+      throw e;
+    });
+  }
+
+  syncStart(msg) { this.setState({ syncBusy: true, syncMsg: msg, syncErr: '' }); }
+  syncFail(e) { this.setState({ syncBusy: false, syncMsg: '', syncErr: (e && e.message) || String(e) }); }
+  saveSync(patch) { this.setState(patch, () => persistSync(this.state)); }
+
+  doPing() {
+    if (this.state.syncBusy) return;
+    this.syncStart('測試連線中…');
+    this.cloudCall('ping').then(r => {
+      if (!r.ok) throw new Error(r.error || '後端拒絕了這次請求。');
+      this.saveSync({
+        syncBusy: false, syncErr: '', syncRev: Number(r.rev) || 0, syncAt: r.updatedAt || '',
+        syncMsg: '連上「' + (r.title || '試算表') + '」，雲端有 ' + (r.collections || 0) + ' 個分類。'
+      });
+    }).catch(e => this.syncFail(e));
+  }
+
+  doPush(force) {
+    if (this.state.syncBusy) return;
+    const S = this.state;
+    this.syncStart(force ? '強制上傳中…' : '上傳中…');
+    this.cloudCall('push', { collections: S.collections, colId: S.colId, baseRev: S.syncRev, force: !!force })
+      .then(r => {
+        if (!r.ok && r.code === 'conflict') {
+          this.setState({ syncBusy: false, syncMsg: '', syncErr: r.error || '雲端資料比較新。', syncRev: Number(r.rev) || S.syncRev });
+          this.askConfirm('cloudForce');
+          return;
+        }
+        if (!r.ok) throw new Error(r.error || '上傳失敗。');
+        this.saveSync({
+          syncBusy: false, syncErr: '', syncRev: Number(r.rev) || 0, syncAt: r.updatedAt || '',
+          syncMsg: '已上傳 ' + (r.collections || 0) + ' 個分類到 Google Sheet。'
+        });
+      }).catch(e => this.syncFail(e));
+  }
+
+  doPull() {
+    if (this.state.syncBusy) return;
+    this.syncStart('下載中…');
+    this.cloudCall('pull').then(r => {
+      if (!r.ok) throw new Error(r.error || '下載失敗。');
+      const cols = r.collections;
+      if (!Array.isArray(cols) || !cols.length) throw new Error('雲端還沒有資料，先上傳一次。');
+      for (const c of cols) {
+        if (!c || typeof c.id !== 'string' || !Array.isArray(c.fields) || !Array.isArray(c.items)) {
+          throw new Error('雲端資料格式不對，沒有覆蓋本機。');
+        }
+      }
+      this.saveSync({
+        collections: cols,
+        colId: cols.some(c => c.id === r.colId) ? r.colId : cols[0].id,
+        itemId: null, draft: null, reorder: false,
+        syncBusy: false, syncErr: '', syncRev: Number(r.rev) || 0, syncAt: r.updatedAt || '',
+        syncMsg: '已從 Google Sheet 下載 ' + cols.length + ' 個分類。'
+      });
+    }).catch(e => this.syncFail(e));
   }
 
   renderVals() {
@@ -1171,6 +1320,16 @@ class Component extends DCLogic {
       closePicker: () => this.setState({ picker: null }),
       pickToday: () => this.setState(s => ({ draft: { ...s.draft, [s.picker]: new Date().toISOString().slice(0, 10) }, picker: null })),
       clearDate: () => this.setState(s => ({ draft: { ...s.draft, [s.picker]: '' }, picker: null })),
+      syncUrl: S.syncUrl, syncToken: S.syncToken,
+      syncMsg: S.syncMsg, syncErr: S.syncErr,
+      syncState: S.syncBusy
+        ? '同步中…'
+        : (S.syncAt ? '上次同步 ' + fmtWhen(S.syncAt) + ' · rev ' + S.syncRev : '還沒同步過'),
+      setSyncUrl: e => { const v = e.target.value; this.saveSync({ syncUrl: v, syncMsg: '', syncErr: '' }); },
+      setSyncToken: e => { const v = e.target.value; this.saveSync({ syncToken: v, syncMsg: '', syncErr: '' }); },
+      cloudPing: () => this.doPing(),
+      cloudPush: () => this.doPush(false),
+      cloudPull: () => this.askConfirm('cloudPull'),
       lowThreshold: th, costLabel: (this.props.showCost ?? true) ? '開啟' : '關閉',
       tintHome: S.screen === 'home' ? ac : '#5C6470',
       tintList: (S.screen === 'list' || S.screen === 'detail') ? ac : '#5C6470',
